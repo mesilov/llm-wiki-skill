@@ -31,7 +31,8 @@ AGENTS = {'claude': 'Claude Code', 'codex': 'Codex', 'opencode': 'OpenCode'}
 def installation_plan(root: Path, init_wiki: bool, claude: bool, managed):
     if init_wiki:
         required = [Path('templates/wiki') / name for name in (
-            'raw/README.md', 'knowledge/SCHEMA.md', 'knowledge/index.md')]
+            'raw/README.md', 'knowledge/SCHEMA.md', 'knowledge/index.md',
+            'knowledge/GLOSSARY.md', 'knowledge/log.md')]
         for relative in required:
             check_destination(KIT / relative, KIT)
             if not (KIT / relative).is_file():
