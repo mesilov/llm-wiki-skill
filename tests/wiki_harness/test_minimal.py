@@ -1,3 +1,4 @@
+import importlib.util
 import json
 import subprocess
 import sys
@@ -6,6 +7,8 @@ import unittest
 from pathlib import Path
 
 BIN = Path(__file__).resolve().parents[2] / 'bin/wiki'
+requires_yaml = unittest.skipUnless(importlib.util.find_spec('yaml'),
+                                    'raw-lint требует PyYAML из bin/wiki/requirements.txt')
 
 
 class MinimalTest(unittest.TestCase):
@@ -58,6 +61,7 @@ class MinimalTest(unittest.TestCase):
             self.assertIn('E_FILE_ESCAPE', result.stdout)
             self.assertNotIn('secret', result.stdout)
 
+    @requires_yaml
     def test_source_units_need_provenance_and_real_date(self):
         unit = self.root / 'raw/2026-11-11-note'
         unit.mkdir()
@@ -72,6 +76,7 @@ class MinimalTest(unittest.TestCase):
         self.assertIn('E_RAW_SOURCE', result.stdout)
         self.assertIn('E_RAW_DATE', result.stdout)
 
+    @requires_yaml
     def test_raw_does_not_execute_yaml(self):
         unit = self.root / 'raw/2026-11-11-note'
         unit.mkdir()
@@ -96,6 +101,7 @@ class MinimalTest(unittest.TestCase):
             self.assertEqual(result.returncode, 1)
             self.assertIn('E_LINK_ESCAPE', result.stdout)
 
+    @requires_yaml
     def test_duplicate_provenance_is_rejected(self):
         unit = self.root / 'raw/2026-11-11-note'
         unit.mkdir()
