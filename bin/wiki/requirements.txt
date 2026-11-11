@@ -1,0 +1,2 @@
+# Only raw-lint needs this dependency; all other wiki commands use stdlib.
+PyYAML==6.0.3
