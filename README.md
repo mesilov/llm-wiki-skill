@@ -22,7 +22,7 @@ python3 scripts/install.py /path/to/project --init-wiki
 Команда выше ставит текущую версию из ветки `main`. Чтобы поставить стабильный релиз, клонируйте репозиторий на теге релиза и укажите канал `release`:
 
 ```bash
-git clone --branch v0.1.0 https://github.com/mesilov/llm-wiki-skill.git
+git clone --branch v0.2.0 https://github.com/mesilov/llm-wiki-skill.git
 ```
 
 ```bash
