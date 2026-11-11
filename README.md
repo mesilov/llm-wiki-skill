@@ -1,6 +1,6 @@
 # LLM Wiki Skills
 
-Реализация подхода [LLM Wiki Андрея Карпатого](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) для локальной базы знаний в Markdown. Агент сохраняет оригиналы в `raw/`, связывает и обновляет страницы в `knowledge/` и отвечает на вопросы со ссылками на материалы wiki.
+Реализация подхода [LLM Wiki Андрея Карпатого](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) для локальной базы знаний в Markdown. Агент сохраняет оригиналы в `raw/`, связывает и обновляет страницы в `knowledge/`, ведёт глоссарий понятий и журнал значимых изменений знания и отвечает на вопросы со ссылками на материалы wiki.
 
 | Навык | Что делает |
 | --- | --- |
@@ -37,7 +37,7 @@ python3 llm-wiki-skill/scripts/install.py /path/to/project --init-wiki --channel
 bin/wiki/lint --dry-run
 ```
 
-CLI проверяет локальные ссылки и структуру wiki. Для проверки формата источников используйте `bin/wiki/raw-lint` после установки зависимостей из `bin/wiki/requirements.txt`. За проверку содержания отвечает навык `wiki-lint`. [Формат источников](skills/wiki-query/references/raw.md) · [Правила работы с wiki](skills/wiki-query/references/contract.md)
+CLI проверяет локальные ссылки и структуру wiki и предупреждает, если нет обязательных страниц `knowledge/GLOSSARY.md` и `knowledge/log.md`. Для проверки формата источников используйте `bin/wiki/raw-lint` после установки зависимостей из `bin/wiki/requirements.txt`. За проверку содержания отвечает навык `wiki-lint`. [Формат источников](skills/wiki-query/references/raw.md) · [Глоссарий и журнал](skills/wiki-query/references/glossary.md) · [Правила работы с wiki](skills/wiki-query/references/contract.md)
 
 ## Обновление инструментов
 

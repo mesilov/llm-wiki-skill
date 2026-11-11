@@ -359,6 +359,10 @@ def lint_findings(root: Path) -> list[Finding]:
     index = root / 'knowledge/index.md'
     if not index.is_file():
         findings.append(Finding('error', 'E_INDEX_MISSING', index, 'Нет входной страницы knowledge/index.md'))
+    for name, code in (('GLOSSARY.md', 'W_GLOSSARY_MISSING'), ('log.md', 'W_LOG_MISSING')):
+        path = root / 'knowledge' / name
+        if not path.is_file():
+            findings.append(Finding('warning', code, path, f'Нет обязательной страницы knowledge/{name}'))
     findings.extend(Finding('warning', 'W_ORPHAN', p, 'Нет входящих ссылок') for p in orphan_pages(root))
     return sorted(findings, key=lambda f: f.sort_key(root))
 

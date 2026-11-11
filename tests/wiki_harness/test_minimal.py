@@ -40,6 +40,17 @@ class MinimalTest(unittest.TestCase):
         codes = {f['code'] for f in json.loads(result.stdout)['findings']}
         self.assertTrue({'E_INDEX_MISSING', 'W_ORPHAN'} <= codes)
 
+    def test_missing_glossary_and_log_are_warnings(self):
+        result = self.run_cli('lint', '--json')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        codes = {f['code'] for f in json.loads(result.stdout)['findings']}
+        self.assertTrue({'W_GLOSSARY_MISSING', 'W_LOG_MISSING'} <= codes)
+        for name in ('GLOSSARY.md', 'log.md'):
+            (self.root / 'knowledge' / name).write_text(f'# {name}\n')
+        result = self.run_cli('lint', '--json')
+        codes = {f['code'] for f in json.loads(result.stdout)['findings']}
+        self.assertFalse({'W_GLOSSARY_MISSING', 'W_LOG_MISSING', 'W_ORPHAN'} & codes)
+
     def test_nested_git_boundary_does_not_read_parent_wiki(self):
         child = self.root / 'nested'
         (child / '.git').mkdir(parents=True)

@@ -64,6 +64,11 @@ class InstallTest(unittest.TestCase):
                                  capture_output=True, text=True)
             self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
             json.loads(run.stdout)
+        for name in ('GLOSSARY.md', 'log.md'):
+            self.assertTrue((self.root / 'knowledge' / name).is_file())
+        lint = subprocess.run([str(self.root / 'bin/wiki/lint'), '--json'], cwd=self.root,
+                              capture_output=True, text=True)
+        self.assertEqual(json.loads(lint.stdout)['findings'], [])
 
     def test_utr_upstream_hashes(self):
         ref = ROOT / 'skills/wiki-query/references/utr-source'
