@@ -1,0 +1,4 @@
+interface:
+  display_name: "LLM Wiki Maintainer"
+  short_description: "Изменения, ревью и релизы набора LLM Wiki"
+  default_prompt: "Используй $llm-wiki-maintainer для обслуживания этого репозитория и выпуска обновлений."
