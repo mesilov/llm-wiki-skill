@@ -37,7 +37,7 @@ python3 llm-wiki-skill/scripts/install.py /path/to/project --init-wiki --channel
 bin/wiki/lint --dry-run
 ```
 
-CLI проверяет локальные ссылки и структуру wiki и предупреждает, если нет обязательных страниц `knowledge/GLOSSARY.md` и `knowledge/log.md`. Для проверки формата источников используйте `bin/wiki/raw-lint` после установки зависимостей из `bin/wiki/requirements.txt`. За проверку содержания отвечает навык `wiki-lint`. [Формат источников](skills/wiki-query/references/raw.md) · [Глоссарий и журнал](skills/wiki-query/references/glossary.md) · [Правила работы с wiki](skills/wiki-query/references/contract.md)
+CLI проверяет локальные ссылки и структуру wiki и предупреждает, если нет обязательных страниц `knowledge/GLOSSARY.md` и `knowledge/log.md`, а в глоссарии есть повторяющиеся или пустые H2-записи (`W_GLOSSARY_DUPLICATE`, `W_GLOSSARY_EMPTY`). Для проверки формата источников используйте `bin/wiki/raw-lint` после установки зависимостей из `bin/wiki/requirements.txt`. За проверку содержания отвечает навык `wiki-lint`. [Формат источников](skills/wiki-query/references/raw.md) · [Глоссарий и журнал](skills/wiki-query/references/glossary.md) · [Правила работы с wiki](skills/wiki-query/references/contract.md)
 
 ## Обновление инструментов
 
