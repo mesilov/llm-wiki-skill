@@ -7,6 +7,7 @@ import re
 
 import sys
 
+import unicodedata
 
 from dataclasses import dataclass
 
@@ -354,6 +355,110 @@ def orphan_pages(root: Path) -> list[Path]:
             and not (p.parent == root / 'knowledge' and p.name in supporting)]
 
 
+GLOSSARY_HEADING_RE = re.compile(r"^ {0,3}##(?:[ \t]+(.*)|[ \t]*)$")
+
+GLOSSARY_SERVICE_RE = re.compile(r"^ {0,3}(?:_Avoid_:|\*\*Контекст:\*\*)")
+
+HEADING_RE = re.compile(r"^ {0,3}(?:#{1,6}(?:[ \t]|$)|([-*_])(?:[ \t]*\1){2,}[ \t]*$)")
+
+
+@dataclass(frozen=True)
+class GlossaryEntry:
+    title: str
+    line: int
+    has_definition: bool
+
+    def normalized_title(self) -> str:
+        title = INLINE_CODE_RE.sub(lambda match: match.group(2), self.title)
+        return " ".join(unicodedata.normalize("NFC", title).casefold().split())
+
+
+def frontmatter_length(lines: list[str]) -> int:
+    """Число строк блока frontmatter в начале файла или 0, если блока нет."""
+    if not lines or lines[0].lstrip("\ufeff").rstrip() != "---":
+        return 0
+    for index in range(1, len(lines)):
+        if lines[index].rstrip() in ("---", "..."):
+            return index + 1
+    return 0
+
+
+def has_definition_text(lines: list[str], masked: list[str]) -> bool:
+    """Есть ли под заголовком текст кроме _Avoid_, Контекста, подзаголовков, линий и комментариев."""
+    service_paragraph = False
+    in_comment = False
+    previous_blank = True
+    for line, visible in zip(lines, masked):
+        if not visible.strip():
+            if line.strip():
+                return True  # Содержимое или граница блока кода.
+            previous_blank = True
+            service_paragraph = False
+            continue
+        content = visible
+        if in_comment:
+            if "-->" not in content:
+                continue
+            content = content.split("-->", 1)[1]
+            in_comment = False
+        content = re.sub(r"<!--.*?-->", "", content)
+        if "<!--" in content:
+            content = content.split("<!--", 1)[0]
+            in_comment = True
+        starts_paragraph = previous_blank
+        previous_blank = False
+        if not content.strip():
+            continue
+        if HEADING_RE.match(content):
+            previous_blank = True
+            service_paragraph = False
+            continue
+        if starts_paragraph:
+            service_paragraph = bool(GLOSSARY_SERVICE_RE.match(content))
+        if not service_paragraph:
+            return True
+    return False
+
+
+def glossary_entries(text: str) -> list[GlossaryEntry]:
+    lines = text.splitlines()
+    skipped = frontmatter_length(lines)
+    masked = [""] * skipped + without_code_lines("\n".join(lines[skipped:]), preserve_inline=True)
+    headings: list[tuple[int, str]] = []
+    for index, line in enumerate(masked):
+        match = GLOSSARY_HEADING_RE.match(line)
+        if match:
+            title = re.sub(r"(?:^|[ \t]+)#+[ \t]*$", "", match.group(1) or "").strip()
+            headings.append((index, title))
+    entries = []
+    for offset, (index, title) in enumerate(headings):
+        end = headings[offset + 1][0] if offset + 1 < len(headings) else len(lines)
+        body = slice(index + 1, end)
+        entries.append(GlossaryEntry(title, index + 1, has_definition_text(lines[body], masked[body])))
+    return entries
+
+
+def glossary_findings(root: Path, path: Path) -> list[Finding]:
+    if not is_within(path.resolve(), root.resolve()):
+        return []  # E_FILE_ESCAPE выдаёт общая проверка.
+    findings = []
+    seen: dict[str, int] = {}
+    for entry in glossary_entries(path.read_text(encoding="utf-8")):
+        title = entry.normalized_title()
+        if not title:
+            findings.append(Finding("warning", "W_GLOSSARY_EMPTY", path,
+                                    "запись глоссария без названия", entry.line))
+        elif not entry.has_definition:
+            findings.append(Finding("warning", "W_GLOSSARY_EMPTY", path,
+                                    f"у записи «{entry.title}» нет текста определения", entry.line))
+        if title and title in seen:
+            findings.append(Finding("warning", "W_GLOSSARY_DUPLICATE", path,
+                                    f"повтор названия «{entry.title}» из строки {seen[title]}", entry.line))
+        if title:
+            seen.setdefault(title, entry.line)
+    return findings
+
+
 def lint_findings(root: Path) -> list[Finding]:
     findings = link_findings(root)
     index = root / 'knowledge/index.md'
@@ -363,6 +468,8 @@ def lint_findings(root: Path) -> list[Finding]:
         path = root / 'knowledge' / name
         if not path.is_file():
             findings.append(Finding('warning', code, path, f'Нет обязательной страницы knowledge/{name}'))
+        elif name == 'GLOSSARY.md':
+            findings.extend(glossary_findings(root, path))
     findings.extend(Finding('warning', 'W_ORPHAN', p, 'Нет входящих ссылок') for p in orphan_pages(root))
     return sorted(findings, key=lambda f: f.sort_key(root))
 
